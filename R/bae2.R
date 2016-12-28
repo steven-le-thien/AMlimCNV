@@ -1,8 +1,8 @@
 #BAE2 or Bad Amplicon Elimination 2 is the process in which inconsistent SNP amplicons are removed.
-#BAE2. The method used is polynomial regression over a Coverage data that has been normalized with 
+#BAE2. The method used is polynomial regression over a Coverage data that has been normalized with
 #Quality
 
-#A function used to generate relative quality, which is the ratio of any quality to the greatest 
+#A function used to generate relative quality, which is the ratio of any quality to the greatest
 #quality for that amplicon
 relative_quality <- function(quality) {
   max_quality_vector <- apply(quality, 1, max)
@@ -11,9 +11,9 @@ relative_quality <- function(quality) {
 
 #A function that returns the formula used to normalize coverage against quality (see paper)
 normalize_definition <- function(raw_reference, normalized_target, relative_quality) {
-  if (normalized_target > raw_reference) 
+  if (normalized_target > raw_reference)
     return (normalized_target - abs(normalized_target - raw_reference) * relative_quality)
-  else 
+  else
     return (normalized_target + abs(normalized_target - raw_reference) * relative_quality)
 }
 
@@ -22,7 +22,7 @@ normalizing_reference <- function(reference_coverage, normalized_target, relativ
   num_of_reference <- dim(reference_coverage)[2]
   num_of_amplicons <- dim(reference_coverage)[1]
   output <- data.frame(matrix(nrow = num_of_amplicons, ncol = num_of_reference))
-  
+
   #Loop through all the amplicons and references data
   for (amplicon in 1:num_of_amplicons)
     for (reference in 1:num_of_reference)
@@ -57,13 +57,13 @@ harmonic_mean_cost <- function(expected, actual) {
 #A function that returns the cost for a single BAE2 run
 bae2_report <- function(i, num_cov, num_qual) {
   print(paste(round(i/dim(num_cov)[2]*100, 2), "%", " ...", sep = ""))
-  
+
   #Housekeeping
   bae2_target_coverage <- num_cov[,i]
   bae2_target_quality <- num_qual[,i]
   bae2_reference_coverage <- num_cov[, -i]
   bae2_reference_quality <- num_qual[, -i]
-    
+
   normalized_quality <- relative_quality(bae2_reference_quality)
   normalized_reference <- normalizing_reference(bae2_reference_coverage, bae2_target_coverage, normalized_quality)
 
@@ -87,6 +87,7 @@ bae2_report <- function(i, num_cov, num_qual) {
   return (cost)
 }
 
+#Removing amplicons based on kmeans clustering
 bae2_kmeans <- function(coverage, mean_vector) {
   kmeans_result <- tryCatch({
     kmeans_report <- kmeans(mean_vector, centers = c(0.98,1))
@@ -95,11 +96,11 @@ bae2_kmeans <- function(coverage, mean_vector) {
     filtered_coverage <- filtered_coverage[ ,1:dim(filtered_coverage)[2] - 1]
     return (filtered_coverage)
   }, warning = function(war) {
-    
+
   }, error = function(err) {
     return (-1)
   })
-  
+
   if (kmeans_result == -1) {
     print("No amplicons eliminated through BAE2")
     return (coverage)
@@ -108,11 +109,12 @@ bae2_kmeans <- function(coverage, mean_vector) {
   }
 }
 
+#Removing amplicons based on absolute cut-off
 bae2_absolute <- function(coverage, mean_vector) {
   clustered_coverage <- cbind(coverage, mean_vector)
   filtered_coverage <- clustered_coverage[clustered_coverage$mean_vector > BAE2.threshold.absolute.0.to.1,]
   filtered_coverage <- filtered_coverage[ ,1:dim(filtered_coverage)[2] - 1]
-  
+
   return (filtered_coverage)
 }
 
@@ -125,19 +127,20 @@ bae2 <- function(coverage, quality) {
   #Taking 1 reference as target at a time, rotate to ensure no bias in target coverage
   output <- data.frame(matrix(nrow = dim(numeric_coverage)[2], ncol = dim(numeric_coverage)[2]))
   report <- lapply(1:dim(numeric_coverage)[2], bae2_report, numeric_coverage, numeric_quality)
-  
-  
+
+
   #Uncomment this line to generate a report file
   # write.csv2(as.data.frame(report), "report_report.csv", row.names = FALSE)
   mean_vector <- apply(as.data.frame(report), 1, mean)
-  
+
+  #Plot result
   if (is_test < 0) {
     plot(mean_vector, xlab = "Amplicon", ylab = "Mean Cost", main = "Bad Amplicon Elimination 2 combined Report", ylim = c(0,1))
   }
 
+  #Eliminate amplicon
   if (BAE2.threshold.mode.0.or.1 == 0)
     return (bae2_kmeans(coverage, mean_vector))
   else if (BAE2.threshold.mode.0.or.1 == 1)
     return (bae2_absolute(coverage, mean_vector))
 }
-  
