@@ -1,0 +1,10 @@
+Package: AMlimCNV
+Type: Package
+Title: Copy number variation analysis from Ion Torrent SNPs
+Version: 0.1.0
+Author: Thien Le 
+Maintainer: Thien Le <steven.le.thien@gmail.com>
+Description: Statistical analysis of genomic copy nuber variation from a next-generation sequencing platform that includes 1/optimization of SNPs sets (type1 and type2), 2/Ratio analysis of the test sample against a set of reference sample amd 3/hypothesis testing using z-score
+License: GNU
+Encoding: UTF-8
+LazyData: true
