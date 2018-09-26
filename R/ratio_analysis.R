@@ -21,7 +21,7 @@ am_lim <- function(reference_coverage, test_coverage) {
   target_matrix <- as.data.frame(test_matrix/(Reduce("+", reference_matrix)/length(reference_matrix)))
 
   #Perform AM-lim correction
-  while (abs(target_matrix[1,2] - 1/target_matrix[2,1]) > 0.000005)
+  while (abs(target_matrix[1,2] - 1/target_matrix[2,1]) > 0.000005) #literal for small no; can be part of setting
     target_matrix <- (target_matrix + 1/t(target_matrix))/2
   return(as.data.frame(target_matrix))
 }

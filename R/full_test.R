@@ -1,4 +1,5 @@
 #Stand-in function that map the chromosome to its numeric position, X is 24 and Y is 25
+## Work on this to exend scpe
 chrom_position <- function(x) {
   bin_no <- substr(x, 4, nchar(x))
   if (bin_no == 'X')

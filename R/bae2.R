@@ -10,6 +10,7 @@ relative_quality <- function(quality) {
 }
 
 #A function that returns the formula used to normalize coverage against quality (see paper)
+##Revise formula `~~ other exploratory studies`
 normalize_definition <- function(raw_reference, normalized_target, relative_quality) {
   if (normalized_target > raw_reference)
     return (normalized_target - abs(normalized_target - raw_reference) * relative_quality)
